@@ -66,3 +66,4 @@ arry3 = np.array([4, 5, 6])
 
 print(arry2 + arry3)
 # %%
+
