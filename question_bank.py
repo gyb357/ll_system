@@ -7,20 +7,38 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # 데이터 불러오기
-data = pd.read_csv('dataset/survey_results_public.csv')
+df = pd.read_csv('dataset/survey_results_public.csv')
+# print(df.head())
 
-# 데이터 확인
-age = data['Age']
-print(age)
+# 데이터 전처리
+reversed_df = df[
+    [
+        'Age'
+    ]
+]
+# print(reversed_df.head())
+# print(reversed_df['Age'].duplicated().head())
 
-# 결측값 제거
-age = age.dropna()
+# 연령대 별 응답자수
+size_by_age = reversed_df.groupby('Age').size()
+print(size_by_age.head())
 
-# 나이대 별 응답자 수 정렬
-age = age.value_counts().sort_index()
+# reindex
+reindexed_age = size_by_age.reindex(
+    index=(
+        'Under 18 years old',
+        '18-24 years old',
+        '25-34 years old',
+        '35-44 years old',
+        '45-54 years old',
+        '55-64 years old',
+        '65 years or older'
+    )
+)
+print(reindexed_age.head())
 
 # 그래프 그리기
-age.plot(kind='bar')
+reindexed_age.plot.bar()
 plt.xlabel('Age')
 plt.ylabel('Number of Respondents')
 plt.xticks(rotation=45)
