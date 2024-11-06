@@ -3,18 +3,19 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
+
 # %%
 # scikit-learn 설치 (ipykernel)
 # %pip install scikit-learn
+
 # %%
 data_1 = pd.read_csv('dataset/lotto_1.csv') # 1 ~ 600
 data_2 = pd.read_csv('dataset/lotto_2.csv') # 601 ~ 
-
 data = pd.concat([data_1, data_2], axis=0)
 print(data.info())
+
 # %%
 price_columns = [
     'win1_pric',
@@ -27,10 +28,12 @@ price_columns = [
 for col in price_columns:
     data[col] = data[col].str.replace('원', '').str.replace(',', '').astype(np.int64)
     print(data[col])
+
 # %%
 plt.figure(figsize=(10, 6))
 data[['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'cb']].hist(bins=50)
 plt.show()
+
 # %%
 columns = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']
 recommandations = {}
@@ -40,6 +43,7 @@ for col in columns:
     recommandations[col] = most_common_number
 
 print(recommandations)
+
 # %%
 def weighted_random_choice(columns):
     value_count = data[columns].value_counts()
@@ -48,24 +52,29 @@ def weighted_random_choice(columns):
 
     rand = random.choices(numbers, weights=weights, k=1)
     return rand[0]
+
 # %%
 for col in columns:
     recommandations[col] = weighted_random_choice(col)
 
 print('추천번호 : ', recommandations)
+
 # %%
 data.set_index('iso', inplace=True)
 data.sort_index(inplace=True)
 data.head()
+
 # %%
 lotto_numbers = data[['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'cb']]
 print(lotto_numbers.info())
+
 # %%
 scaler = MinMaxScaler()
 scaled_data = scaler.fit_transform(lotto_numbers)
 
 print(scaled_data)
 print(scaled_data.shape)
+
 # %%
 def create_sequence(data, seq_len):
     sequence = []
@@ -74,11 +83,13 @@ def create_sequence(data, seq_len):
         sequence.append(data[i:i+seq_len])
         target.append(data[i+seq_len])
     return np.array(sequence), np.array(target)
+
 # %%
 sequence_length = 10
 X, y = create_sequence(scaled_data, sequence_length)
 
 print(X.shape, y.shape)
+
 # %%
 import torch
 import torch.nn as nn
@@ -91,6 +102,7 @@ y_train = torch.tensor(y_train, dtype=torch.float32)
 y_test = torch.tensor(y_test, dtype=torch.float32)
 
 print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
+
 # %%
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -111,15 +123,17 @@ class LottoLSTM(nn.Module):
         out, _ = self.lstm(x, (h0, c0))
         out = self.fc(out[:, -1, :])
         return out
+    
 # %%
 model = LottoLSTM(input_size=7, hidden_size=64, num_layers=2, output_size=7).to(device)
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
 # %%
 from tqdm import tqdm
 
-num_epochs = 100
+num_epochs = 5000
 for epoch in tqdm(range(num_epochs)):
     outputs = model(x_train.to(device))
     loss = criterion(outputs, y_train.to(device))
@@ -130,6 +144,7 @@ for epoch in tqdm(range(num_epochs)):
 
     if (epoch+1) % 10 == 0:
         print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item()}')
+
 # %%
 model.eval()
 with torch.no_grad():
@@ -139,7 +154,6 @@ with torch.no_grad():
     print(test_result, y_test)
 
 # %%
-# test_result로부터 추천된 번호 출력
 x_tensor = torch.tensor(X, dtype=torch.float32).to(device)
 last_sequence = x_tensor[-1].unsqueeze(0)
 with torch.no_grad():
@@ -147,4 +161,32 @@ with torch.no_grad():
 
 pred = scaler.inverse_transform(pred.detach().cpu().numpy())
 print(pred)
+
+# %%
+# test_result로부터 추천된 번호 출력
+def predict_data(seq_index: int):
+    if seq_index < len(X):
+        input_seq = X[seq_index]
+        actual = y[seq_index]
+
+        input_seq = torch.tensor(input_seq, dtype=torch.float32).unsqueeze(0).to(device)
+        actual = torch.tensor(actual, dtype=torch.float32).unsqueeze(0).to(device)
+
+        # 모델 예측
+        model.eval()
+        with torch.no_grad():
+            out = model(input_seq)
+            loss = criterion(out, actual)
+            print(f'Loss: {loss.item()}')
+
+        pred_unscaled = scaler.inverse_transform(out.detach().cpu().numpy())
+        actual_unscaled = scaler.inverse_transform(actual.detach().cpu().numpy())
+        return pred_unscaled, actual_unscaled
+    else:
+        return None, None
+
+# %%
+pred, actual = predict_data(600)
+print(pred, actual)
+
 # %%
