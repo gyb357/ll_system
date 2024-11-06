@@ -226,7 +226,7 @@ class Trainer():
         # train
         dataset_len = len(self.train_data)
 
-        for epoch in range(epochs):
+        for epoch in tqdm(range(epochs)):
             self.model.train()
             train_loss, train_mae = 0, 0
 
@@ -246,11 +246,15 @@ class Trainer():
                 
             train_loss /= dataset_len
             train_mae /= dataset_len
-            print(f'Epoch: {epoch + 1}/{epochs}, Train Loss: {train_loss}, Train MAE: {train_mae}')
+
+            if (epoch + 1) % 100 == 0:
+                print(f'Epoch: {epoch + 1}/{epochs}, Train Loss: {train_loss}, Train MAE: {train_mae}')
 
             # validation
             val_loss, val_mae, _ = self.eval(self.val_data)
-            print(f'Epoch: {epoch + 1}/{epochs}, Val Loss: {val_loss}, Val MAE: {val_mae}')
+            
+            if (epoch + 1) % 100 == 0:
+                print(f'Epoch: {epoch + 1}/{epochs}, Val Loss: {val_loss}, Val MAE: {val_mae}')
 
             # tensorboard
             values = [epoch, train_loss, train_mae, val_loss, val_mae]
@@ -301,7 +305,7 @@ trainer = Trainer(
 
 # %%
 # 학습
-trainer.train(epochs=5000)
+trainer.train(epochs=1000)
 
 # %%
 # 테스트
