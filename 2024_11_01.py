@@ -133,7 +133,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 # %%
 from tqdm import tqdm
 
-num_epochs = 5000
+num_epochs = 1000
 for epoch in tqdm(range(num_epochs)):
     outputs = model(x_train.to(device))
     loss = criterion(outputs, y_train.to(device))

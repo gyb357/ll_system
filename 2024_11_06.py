@@ -32,9 +32,10 @@ data.head()
 station_info = pd.read_csv('dataset/seoul-metro-station-info.csv', nrows=0)
 station_info.info()
 station_info.head()
+station_info.set_index('station.code', inplace=True)
 
 # %%
-station_sum = data.groupby('station_code').sum()
+station_sum = data.groupby('station.code').sum()
 station_sum
 
 # %%
@@ -47,4 +48,6 @@ seoul_in = folium.Map(location=(37.55, 126.98), zoom_start=12)
 seoul_in
 
 # %%
-# HeatMap(data=joined_data['geo.latitude', 'geo.longitude', 'people_in']).add_to(seoul_in)
+HeatMap(data=joined_data[['geo.latitude', 'geo.longitude', 'people_in']]).add_to(seoul_in)
+
+# %%

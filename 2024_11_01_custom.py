@@ -226,7 +226,7 @@ class Trainer():
         # train
         dataset_len = len(self.train_data)
 
-        for epoch in tqdm(range(epochs)):
+        for epoch in range(epochs):
             self.model.train()
             train_loss, train_mae = 0, 0
 
@@ -305,7 +305,7 @@ trainer = Trainer(
 
 # %%
 # 학습
-trainer.train(epochs=1000)
+trainer.train(epochs=3000)
 
 # %%
 # 테스트
