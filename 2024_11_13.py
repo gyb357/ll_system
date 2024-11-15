@@ -169,6 +169,42 @@ for epoch in range(epochs):
     valid_loss /= len(valid_loader)
     print(f'Epoch: {epoch + 1}/{epochs}, Valid Loss: {valid_loss}')
 
+# %%
+def calculate_correct_numbers(output, y, k):
+    _, topk = torch.topk(output, k, dim=1)
+    pred = torch.zeros_like(output)
+    pred.scatter_(1, topk, 1)
+    correct = (pred * y).sum(dim=1)
+    return correct.detach().cpu().numpy(), pred
+
+# %%
+for epoch in range(epochs):
+    print(f'train...{epoch}')
+    model.train()
+
+    train_losses = []
+    train_correct_numbers = []
+
+    for x, y in train_loader:
+        x, y = x.to(device), y.to(device)
+
+        batch_size = x.size(0)
+        hidden = model.init_hidden(batch_size)
+
+        optimizer.zero_grad()
+        output, hidden = model(x, hidden)
+        loss = criterion(output, y)
+        loss.backward()
+        optimizer.step()
+        
+        hidden = (hidden[0].detach(), hidden[0].detach())
+        train_losses.append(loss.item())
+
+        num_correct, _ = calculate_correct_numbers(output, y, 6)
+        train_correct_numbers.extend(num_correct)
+
+    avg_correct_numbers = np.mead(train_correct_numbers)
+    print(f'Epoch: {epoch + 1}/{epochs}, Train Loss: {np.mean(train_losses)}, Train Correct Numbers: {avg_correct_numbers}')
 
 # %%
 # 모델 테스트
