@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations":
+    {
+        "name": "Streamlit : Currunt File",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "streamlit",
+        "console": "integratedTerminal",
+        "justMyCode": true,
+        "cwd": "${fileDirname}",
+        "args":
+        [
+            "run",
+            "${file}",
+            "--server.port",
+            "8501",
+            "--",
+            "--debugger",
+            "--verbose"
+        ]
+    }
+}
